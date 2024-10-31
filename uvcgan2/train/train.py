@@ -10,8 +10,22 @@ from uvcgan2.utils.log   import setup_logging
 from .metrics   import LossMetrics
 from .callbacks import TrainingHistory
 from .transfer  import transfer
+import torch
+import torch
+import torchvision
+import imageio
+import os
 
-def training_epoch(it_train, model, title, steps_per_epoch):
+
+def save_grid(images: torch.Tensor, gt: torch.Tensor, savedir):
+    vis = torch.cat([images, gt], dim = 0)
+    grid = torchvision.utils.make_grid(vis, nrow=images.shape[0], normalize=True).permute(1, 2, 0).cpu().numpy()
+    grid = (grid * 255).astype('uint8')
+    imageio.v3.imwrite(os.path.join(savedir, 'grid.png'), grid)
+    print('saved grid to', os.path.join(savedir, 'grid.png'))
+
+
+def training_epoch(it_train, model, title, steps_per_epoch, savedir):
     model.train()
 
     steps = len(it_train)
@@ -30,6 +44,7 @@ def training_epoch(it_train, model, title, steps_per_epoch):
         progbar.set_postfix(metrics.values, refresh = False)
         progbar.update()
 
+    save_grid(model.images.reco_a, model.images.real_a, savedir)
     progbar.close()
     return metrics
 
@@ -71,7 +86,7 @@ def train(args_dict):
     for epoch in range(start_epoch + 1, args.epochs + 1):
         title   = 'Epoch %d / %d' % (epoch, args.epochs)
         metrics = training_epoch(
-            it_train, model, title, args.config.steps_per_epoch
+            it_train, model, title, args.config.steps_per_epoch, args.savedir
         )
 
         history.end_epoch(epoch, metrics)

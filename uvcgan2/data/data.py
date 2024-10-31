@@ -8,7 +8,6 @@ from uvcgan2.consts       import (
 )
 from uvcgan2.torch.select import extract_name_kwargs
 
-from .datasets.celeba                 import CelebaDataset
 from .datasets.image_domain_folder    import ImageDomainFolder
 from .datasets.image_domain_hierarchy import ImageDomainHierarchy
 from .datasets.zipper                 import DatasetZipper
@@ -17,11 +16,6 @@ from .loader_zipper import DataLoaderZipper
 from .transforms    import select_transform
 
 def select_dataset(name, path, split, transform, **kwargs):
-    if name == 'celeba':
-        return CelebaDataset(
-            path, transform = transform, split = split, **kwargs
-        )
-
     if name in [ 'cyclegan', 'image-domain-folder' ]:
         return ImageDomainFolder(
             path, transform = transform, split = split, **kwargs
